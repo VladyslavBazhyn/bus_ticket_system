@@ -33,8 +33,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset
         if self.action in ["list", "retrieve"]:
-            return queryset.prefetch_related("facilities")
-        return queryset
+            return queryset.prefetch_related("facilities").filter(user=self.request.user.id)
+        return queryset.filter(user=self.request.user.id)
+
+    def perform_create(self, serializer):
+        serializer.save(self.request.user)
 
 
 class TripViewSet(viewsets.ModelViewSet):
