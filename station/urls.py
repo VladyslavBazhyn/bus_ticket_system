@@ -1,5 +1,5 @@
 from django.urls import path, include
-from station.views import BusViewSet
+from station.views import BusViewSet, TripViewSet, FacilityViewSet, OrderViewSet
 from rest_framework import routers
 
 app_name = "station"
@@ -7,7 +7,9 @@ app_name = "station"
 router = routers.DefaultRouter()
 
 router.register("buses", BusViewSet)
-router.register("orders")
+router.register("orders", OrderViewSet)
+router.register("trips", TripViewSet)
+router.register("facilities", FacilityViewSet)
 
 urlpatterns = [
     path("", include(router.urls))
@@ -33,4 +35,3 @@ urlpatterns = [
 #     path("buses/", bus_list, name="bus_list"),
 #     path("buses/<int:pk>/", bus_detail, name="bus_detail")
 # ]
-
