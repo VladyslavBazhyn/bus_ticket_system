@@ -1,4 +1,6 @@
+from django.db.models import Count, F
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 
 from station.models import Buss, Trip, Facility, Order
 from station.serializers import (
@@ -9,7 +11,7 @@ from station.serializers import (
     FacilitySerializer,
     BussRetrieveSerializer,
     TripRetrieveSerializer,
-    OrderSerializer
+    OrderSerializer, OrderListSerializer
 )
 
 
@@ -43,15 +45,31 @@ class BusViewSet(viewsets.ModelViewSet):
         return queryset.distinct()
 
 
+class OrderSetPagination(PageNumberPagination):
+    page_size = 3
+    page_size_query_param = "page_size"
+    max_page_size = 20
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    pagination_class = OrderSetPagination
 
     def get_queryset(self):
-        queryset = self.queryset
-        if self.action in ["list", "retrieve"]:
-            return queryset.prefetch_related("facilities").filter(user=self.request.user.id)
-        return queryset.filter(user=self.request.user.id)
+        queryset = self.queryset.filter(user=self.request.user.id)
+        if self.action == "list":
+            queryset = queryset.prefetch_related("tickets__trip__bus")
+
+        return queryset
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+
+        if self.action == "list":
+            serializer_class = OrderListSerializer
+
+        return serializer_class
 
     def perform_create(self, serializer):
         serializer.save(self.request.user)
@@ -70,9 +88,15 @@ class TripViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.queryset
-        if self.action in ["list", "retrieve"]:
+        if self.action == "retrieve":
             return queryset.select_related()
-        return self.queryset
+        elif self.action == "list":
+            return (
+                queryset
+                .select_related()
+                .annotate(tickets_available=F("bus__num_seats") - Count("tickets"))
+            )
+        return self.queryset.order_by("id")
 
 
 class FacilityViewSet(viewsets.ModelViewSet):
