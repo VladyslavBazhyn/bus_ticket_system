@@ -17,10 +17,10 @@ class BusViewSet(viewsets.ModelViewSet):
     queryset = Buss.objects.all()
     serializer_class = BussSerializer
 
-
-class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    @staticmethod
+    def _param_to_ints(query_string):
+        """Convert a string of format '1,2,3' to a list of integers [1, 2, 3]"""
+        return [int(str_id) for str_id in query_string.split(",")]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -29,6 +29,23 @@ class OrderViewSet(viewsets.ModelViewSet):
             return BussRetrieveSerializer
 
         return BussSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        facilities = self.request.query_params.get("facilities")
+        if facilities:
+            facilities = self._param_to_ints(facilities)
+            queryset = queryset.filter(facilities__id__in=facilities)
+
+        if self.action in ("list", "retrieve"):
+            queryset = queryset.prefetch_related("facilities")
+
+        return queryset.distinct()
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
 
     def get_queryset(self):
         queryset = self.queryset

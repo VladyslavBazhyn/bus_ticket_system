@@ -5,7 +5,7 @@ from app import settings
 
 
 class Facility(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     class Meta:
         verbose_name = "facilities"
@@ -17,7 +17,7 @@ class Facility(models.Model):
 class Buss(models.Model):
     info = models.CharField(max_length=255, null=True)
     num_seats = models.IntegerField()
-    facilities = models.ManyToManyField(Facility, related_name="busses", null=True)
+    facilities = models.ManyToManyField(Facility, related_name="busses")
 
     @property
     def is_small(self):
@@ -52,20 +52,27 @@ class Ticket(models.Model):
     order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="tickets")
 
     class Meta:
+
         constraints = [
             UniqueConstraint(fields=["seat", "trip"], name="unique_ticket_seat_trip")
         ]
 
+        ordering = ("seat", )
+
     def __str__(self):
         return f"{self.trip} - (seat - {self.seat})"
 
-    def clean(self):
-        if not (1 <= self.seat <= self.trip.bus.num_seats):
-            raise ValueError(
+    @staticmethod
+    def validate_seat(seat: int, num_seats: int, error_to_raise):
+        if not (1 <= seat <= num_seats):
+            raise error_to_raise(
                 {
-                    "seat": f"seat must be in range [1, {self.trip.bus.num_seats}], not {self.seat}"
+                    "seat": f"seat must be in range [1, {seat}], not {num_seats}"
                 }
             )
+
+    def clean(self):
+        Ticket.validate_seat(self.seat, self.trip.bus.num_seats, ValueError)
 
     def save(
         self,
