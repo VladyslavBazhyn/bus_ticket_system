@@ -48,7 +48,7 @@ class Trip(models.Model):
 class Ticket(models.Model):
     seat = models.IntegerField()
     trip = models.ForeignKey("Trip", on_delete=models.CASCADE)
-    order = models.ForeignKey("Order", on_delete=models.CASCADE)
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="tickets")
 
     class Meta:
         constraints = [

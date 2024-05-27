@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from station.models import Buss
+from station.models import Buss, Ticket, Order
 
 
 class BussSerializer(serializers.ModelSerializer):
@@ -25,3 +25,24 @@ class BussSerializer(serializers.ModelSerializer):
     #     instance.num_seats = validated_data.get("num_seats", instance.num_seats)
     #     instance.save()
     #     return instance
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = [
+            "id",
+            "seat",
+            "trip"
+        ]
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "created_at",
+            "user",
+            "tickets"
+        ]

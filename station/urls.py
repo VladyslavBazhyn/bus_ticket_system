@@ -7,6 +7,7 @@ app_name = "station"
 router = routers.DefaultRouter()
 
 router.register("buses", BusViewSet)
+router.register("orders")
 
 urlpatterns = [
     path("", include(router.urls))
