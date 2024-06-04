@@ -31,6 +31,15 @@ class BussSerializer(serializers.ModelSerializer):
     #     return instance
 
 
+class BussImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Buss
+        fields = [
+            "id",
+            "image"
+        ]
+
+
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
