@@ -1,10 +1,9 @@
-from django.contrib.admin import actions
 from django.db.models import Count, F
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from station.models import (
@@ -13,7 +12,6 @@ from station.models import (
     Facility,
     Order
 )
-from station.permissions import IsAdminAllOrAuthenticatedReadOnly
 from station.serializers import (
     BussListSerializer,
     TripSerializer,
@@ -77,6 +75,19 @@ class BusViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "facilities",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by facility id (ex. ?facilities=2,3)"
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of busses"""
+        return super().list(request, *args, **kwargs)
+
 
 class OrderSetPagination(PageNumberPagination):
     page_size = 3
@@ -135,12 +146,3 @@ class TripViewSet(viewsets.ModelViewSet):
 class FacilityViewSet(viewsets.ModelViewSet):
     queryset = Facility.objects.all()
     serializer_class = FacilitySerializer
-
-    # permission_classes = [
-    #     IsAdminUser
-    # ]
-    #
-    # def get_permissions(self):
-    #     if self.action in ("list", "retrieve"):
-    #         return (IsAuthenticated(),)
-    #     return super().get_permissions()
