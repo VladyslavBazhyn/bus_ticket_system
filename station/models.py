@@ -32,7 +32,7 @@ def bus_image_path(instance: "Buss", filename: str) -> pathlib.Path:
 class Buss(models.Model):
     info = models.CharField(max_length=255, null=True)
     num_seats = models.IntegerField()
-    facilities = models.ManyToManyField(Facility, related_name="busses")
+    facilities = models.ManyToManyField(Facility, related_name="busses", blank=True)
     image = models.ImageField(null=True, upload_to=bus_image_path)
 
     class Meta:

@@ -1,10 +1,11 @@
 from django.db.models import Count, F
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from station.models import (
     Buss,
@@ -30,7 +31,12 @@ from station.serializers import (
 # IsAuthenticated - "list", "retrieve" (GET)
 # IsAdminUser - "create", "update", "partial_update", "destroy" (POST, PUT, PATCH, DELETE)
 
-class BusViewSet(viewsets.ModelViewSet):
+class BusViewSet(mixins.CreateModelMixin,
+                 mixins.RetrieveModelMixin,
+                 mixins.UpdateModelMixin,
+                 mixins.ListModelMixin,
+                 GenericViewSet
+                 ):
     queryset = Buss.objects.all()
     serializer_class = BussSerializer
 
